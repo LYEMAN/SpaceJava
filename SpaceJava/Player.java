@@ -18,7 +18,7 @@ public class Player extends Entity {
         return y;
     }
 
-    private boolean left, right, up, down, shooting;
+    private boolean left, right, up, down;
 
     private int shootCooldown = 0;
     Sound shootSound = new Sound("Sound Files/Laser_Gun_Sound_Effect.wav");
@@ -261,7 +261,6 @@ public class Player extends Entity {
             case KeyEvent.VK_RIGHT -> right = true;
             case KeyEvent.VK_UP -> up = true;
             case KeyEvent.VK_DOWN -> down = true;
-            case KeyEvent.VK_SPACE -> shooting = true;
         }
     }
 
@@ -271,7 +270,6 @@ public class Player extends Entity {
             case KeyEvent.VK_RIGHT -> right = false;
             case KeyEvent.VK_UP -> up = false;
             case KeyEvent.VK_DOWN -> down = false;
-            case KeyEvent.VK_SPACE -> shooting = false;
         }
     }
 }
