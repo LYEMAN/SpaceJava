@@ -3,7 +3,6 @@ package SpaceJava;
 import java.awt.*;
 import java.util.Random;
 
-
 public class Enemy extends Entity {
 
     public int x, y;
@@ -58,41 +57,72 @@ public class Enemy extends Entity {
 
         // Update bullets
         updateBullets();
-    } 
+    }
 
     public void increaseHealth(int amount) {
-    setHealth(getHealth() + amount);
+        setHealth(getHealth() + amount);
     }
 
-    public void draw(Graphics g) { 
+    public void draw(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+
+        // Base colors by enemy type
+        Color bodyColor;
+        Color cockpitColor;
+
         switch (type) {
-            case 1: 
-                g.setColor(Color.red);
-                g.fillRect(x, y, 40, 40);
-                break; 
-            case 2: 
-                g.setColor(Color.blue);
-                g.fillRect(x, y, 40, 40);
-                break;  
-            case 3: 
-                g.setColor(Color.green);
-                g.fillRect(x, y, 40, 40);
+            case 1:
+                bodyColor = new Color(180, 50, 50); // Red fighter
+                cockpitColor = Color.WHITE;
+                break;
+            case 2:
+                bodyColor = new Color(50, 120, 220); // Blue interceptor
+                cockpitColor = Color.CYAN;
+                break;
+            case 3:
+                bodyColor = new Color(60, 180, 100); // Green bomber
+                cockpitColor = Color.YELLOW;
                 break;
             default:
-                g.setColor(Color.red);
-                g.fillRect(x, y, 40, 40);
-                break;
+                bodyColor = Color.RED;
+                cockpitColor = Color.WHITE;
         }
-        
-        // Draw bullets for all types
+
+        // --- BODY (main ship) ---
+        g2.setColor(bodyColor);
+        g2.fillOval(x + 5, y + 8, 30, 22);
+
+        // --- COCKPIT ---
+        g2.setColor(cockpitColor);
+        g2.fillOval(x + 15, y + 12, 10, 10);
+
+        // --- WINGS ---
+        g2.setColor(bodyColor.darker());
+        int[] leftWingX = { x + 5, x, x + 5 };
+        int[] leftWingY = { y + 15, y + 20, y + 25 };
+        int[] rightWingX = { x + 35, x + 40, x + 35 };
+        int[] rightWingY = { y + 15, y + 20, y + 25 };
+
+        g2.fillPolygon(leftWingX, leftWingY, 3);
+        g2.fillPolygon(rightWingX, rightWingY, 3);
+
+        // --- ENGINE FLAME ---
+        g2.setColor(Color.ORANGE);
+        g2.fillOval(x + 17, y + 30, 6, 8);
+
+        // --- OUTLINE ---
+        g2.setColor(Color.BLACK);
+        g2.drawOval(x + 5, y + 8, 30, 22);
+
+        // Draw bullets
         drawBullets(g);
     }
-    
+
     private void shoot() {
         int centerX = x + 18;
         int centerY = y + 40;
         int bulletSpeed = 5;
-        
+
         switch (type) {
             case 1:
                 // Type 1: Single shot
@@ -120,7 +150,7 @@ public class Enemy extends Entity {
                 break;
         }
     }
-    
+
     private void resetCooldown() {
         int minCooldown, maxCooldown;
         switch (type) {
@@ -143,7 +173,7 @@ public class Enemy extends Entity {
         }
         shootCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown);
     }
-    
+
     private int getMaxCooldownForType() {
         switch (type) {
             case 1:
