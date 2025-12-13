@@ -163,7 +163,6 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
         explosions.add(new Explosion(player.getX(), player.getY()));
-        explosionSound.play();
 
         if (player.getHealth() <= 0) {
             gameOver = true;
@@ -489,6 +488,15 @@ public class GamePanel extends JPanel implements ActionListener {
         powerUps.clear();
 
         score = 0;
+
+        // 🔥 RESET MILESTONE TRACKERS
+        lastPowerUpMilestone = 0;
+        lastSpawnRateMilestone = 0;
+
+        // 🔥 RESET SPAWN VALUES
+        baseSpawnCooldownMin = 30;
+        baseSpawnCooldownMax = 90;
+
         gameOver = false;
         gameStarted = true;
     }
