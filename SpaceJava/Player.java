@@ -126,7 +126,7 @@ public class Player extends Entity {
                 healthRegenTimer--;
             } else {
 
-                if (getHealth() < 3) {
+                if (getHealth() < 10) {
                     heal(1);
                 }
 
@@ -144,61 +144,34 @@ public class Player extends Entity {
             }
         }
 
-        if (shooting && shootCooldown == 0) {
-            if (multiShotLevel > 0) {
-                // Multi-shot with spread pattern
-                int bulletCount = multiShotLevel + 1; // Level 1 = 2 bullets, Level 2 = 3 bullets, etc.
-                double baseSpeed = -10.0; // Upward speed
-                double maxSpreadAngle = Math.PI / 4; // 45 degrees max spread
+        if (shootCooldown == 0) {
 
-                if (bulletCount == 1) {
-                    // Single center shot (shouldn't happen with multiShotLevel > 0, but just in
-                    // case)
+            if (multiShotLevel > 0) {
+                int bulletCount = multiShotLevel + 1;
+                double baseSpeed = -10.0;
+                double maxSpreadAngle = Math.PI / 4;
+
+                if (bulletCount % 2 == 1) {
                     addBullet(new Bullet(x + 18, y, 0, baseSpeed, true));
-                } else {
-                    // Spread pattern: create a fan of bullets
-                    if (bulletCount % 2 == 1) {
-                        // Odd number: center bullet + symmetric spread
-                        addBullet(new Bullet(x + 18, y, 0, baseSpeed, true)); // Center
-                        int sideBullets = (bulletCount - 1) / 2;
-                        double angleStep = maxSpreadAngle / (sideBullets + 1);
-                        for (int i = 1; i <= sideBullets; i++) {
-                            // Left side
-                            double angle = -angleStep * i;
-                            double velX = Math.sin(angle) * Math.abs(baseSpeed);
-                            double velY = Math.cos(angle) * baseSpeed;
-                            addBullet(new Bullet(x + 18, y, velX, velY, true));
-                            // Right side
-                            angle = angleStep * i;
-                            velX = Math.sin(angle) * Math.abs(baseSpeed);
-                            velY = Math.cos(angle) * baseSpeed;
-                            addBullet(new Bullet(x + 18, y, velX, velY, true));
-                        }
-                    } else {
-                        // Even number: symmetric spread without center
-                        int sideBullets = bulletCount / 2;
-                        double angleStep = maxSpreadAngle / (sideBullets + 1);
-                        for (int i = 1; i <= sideBullets; i++) {
-                            // Left side
-                            double angle = -angleStep * i;
-                            double velX = Math.sin(angle) * Math.abs(baseSpeed);
-                            double velY = Math.cos(angle) * baseSpeed;
-                            addBullet(new Bullet(x + 18, y, velX, velY, true));
-                            // Right side
-                            angle = angleStep * i;
-                            velX = Math.sin(angle) * Math.abs(baseSpeed);
-                            velY = Math.cos(angle) * baseSpeed;
-                            addBullet(new Bullet(x + 18, y, velX, velY, true));
-                        }
-                    }
+                }
+
+                int sideBullets = bulletCount / 2;
+                double angleStep = maxSpreadAngle / (sideBullets + 1);
+
+                for (int i = 1; i <= sideBullets; i++) {
+                    double angle = angleStep * i;
+                    double velX = Math.sin(angle) * Math.abs(baseSpeed);
+                    double velY = Math.cos(angle) * baseSpeed;
+
+                    addBullet(new Bullet(x + 18, y, -velX, velY, true));
+                    addBullet(new Bullet(x + 18, y, velX, velY, true));
                 }
             } else {
-                // Normal single shot
                 addBullet(new Bullet(x + 18, y, -10, true));
             }
-            shootSound.play();
 
-            shootCooldown = (atkSpeedLvl == 0) ? 15 : 14 / atkSpeedLvl;
+            shootSound.play();
+            shootCooldown = Math.max(3, 15 - atkSpeedLvl);
         }
 
         // Update all bullets
