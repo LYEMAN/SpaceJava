@@ -18,8 +18,8 @@ public class GamePanel extends JPanel implements ActionListener {
     Timer timer;
     Player player;
     ArrayList<Enemy> enemies;
-    ArrayList<Explosion> explosions; 
-    //new
+    ArrayList<Explosion> explosions;
+    // new
     ArrayList<PowerUp> powerUps;
 
     boolean gameStarted = false;
@@ -29,13 +29,13 @@ public class GamePanel extends JPanel implements ActionListener {
     private static final int POWER_UP_MILESTONE = 500; // Show menu every 1500 points
     private int lastSpawnRateMilestone = 0; // Track last milestone for spawn rate increase
     private static final int SPAWN_RATE_MILESTONE = 300; // Increase spawn rate every 300 points
-    
+
     // Power-up menu overlay
     private boolean powerUpMenuShowing = false;
     private PowerUpType[] menuChoices = new PowerUpType[3];
-    
+
     // Enemy spawning variables
-  
+
     private int enemySpawnCooldown = 0;
     private static final int MIN_ENEMIES = 3;
     private static final int MAX_ENEMIES = 50;
@@ -46,6 +46,9 @@ public class GamePanel extends JPanel implements ActionListener {
     // Sounds
     Sound explosionSound = new Sound("Sound Files/Spacecraft_Explosion_Blow_Up_Sound_Effect.wav");
     Sound gameStartSound = new Sound("Sound Files/Game_Start_Sound_Effect.wav");
+    Sound gameOverSound = new Sound("Sound Files/Game_Over_Sound_Effect.wav");
+    Sound powerUpSound = new Sound("Sound Files/PowerUp_Sound_Effect.wav");
+    Sound choosePowerUpSound = new Sound("Sound Files/Choose_Power_Up_Sound_Effect.wav");
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
@@ -54,8 +57,8 @@ public class GamePanel extends JPanel implements ActionListener {
 
         player = new Player(400, 500);
         enemies = new ArrayList<>();
-        explosions = new ArrayList<>(); 
-        //new
+        explosions = new ArrayList<>();
+        // new
         powerUps = new ArrayList<>();
 
         // Create initial enemies at random positions
@@ -67,12 +70,19 @@ public class GamePanel extends JPanel implements ActionListener {
             @Override
             public void keyPressed(KeyEvent e) {
 
+                // RESTART GAME WITH SPACE AFTER GAME OVER
+                if (gameOver && e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    restartGame();
+                    return;
+                }
+
+                // START GAME WITH ENTER (initial start)
                 if (!gameStarted && e.getKeyCode() == KeyEvent.VK_ENTER) {
                     gameStarted = true;
                     gameStartSound.play();
                 }
-                
-                // Handle power-up menu selection
+
+                // POWER-UP MENU INPUT
                 if (powerUpMenuShowing) {
                     int selection = -1;
                     if (e.getKeyCode() == KeyEvent.VK_1 || e.getKeyCode() == KeyEvent.VK_NUMPAD1) {
@@ -82,7 +92,8 @@ public class GamePanel extends JPanel implements ActionListener {
                     } else if (e.getKeyCode() == KeyEvent.VK_3 || e.getKeyCode() == KeyEvent.VK_NUMPAD3) {
                         selection = 2;
                     }
-                    if (selection >= 0 && selection < 3) {
+
+                    if (selection >= 0) {
                         applyPowerUp(menuChoices[selection]);
                         powerUpMenuShowing = false;
                     }
@@ -102,7 +113,6 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         });
 
-
         this.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -118,26 +128,27 @@ public class GamePanel extends JPanel implements ActionListener {
         timer = new Timer(16, this); // ~60 FPS
         timer.start();
     }
-    
+
     private void spawnRandomEnemy() {
         // Random X position (keeping enemies within screen bounds)
-        int randomX = 40 + (int)(Math.random() * (PANEL_WIDTH - 120));
+        int randomX = 40 + (int) (Math.random() * (PANEL_WIDTH - 120));
         // Random Y starting position (spawn from top, with some variation)
-        int randomY = -40 - (int)(Math.random() * 100); // Spawn above screen with random offset  
-        Enemy enemy = new Enemy(randomX, randomY); 
-         int bonusHealth = score / 700;  
-         int bonusbonus = score / 2000; 
-         if(score > 5000) bonusHealth *= bonusbonus; 
+        int randomY = -40 - (int) (Math.random() * 100); // Spawn above screen with random offset
+        Enemy enemy = new Enemy(randomX, randomY);
+        int bonusHealth = score / 700;
+        int bonusbonus = score / 2000;
+        if (score > 5000)
+            bonusHealth *= bonusbonus;
         enemy.increaseHealth(bonusHealth);
-        enemies.add(enemy); 
-        
+        enemies.add(enemy);
+
     }
-    
+
     private void increaseSpawnRate() {
         // Decrease spawn cooldown (faster spawning)
         baseSpawnCooldownMin = Math.max(1, baseSpawnCooldownMin - 3); // Minimum 1 frames
         baseSpawnCooldownMax = Math.max(15, baseSpawnCooldownMax - 5); // Minimum 15 frames
-        
+
         // Optionally increase max enemy count
         if (lastSpawnRateMilestone % 2 == 0) { // Every other milestone (every 1400 points)
             // Already at max, but we could increase MAX_ENEMIES if needed
@@ -156,11 +167,11 @@ public class GamePanel extends JPanel implements ActionListener {
 
         if (player.getHealth() <= 0) {
             gameOver = true;
+            gameOverSound.play();
         } else {
             respawnTimer = 60;
         }
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -194,7 +205,7 @@ public class GamePanel extends JPanel implements ActionListener {
             }
 
             // ---------------------------
-            //      COLLISION CHECKS
+            // COLLISION CHECKS
             // ---------------------------
 
             Rectangle playerRect = new Rectangle(player.getX(), player.getY(), 40, 40);
@@ -208,29 +219,26 @@ public class GamePanel extends JPanel implements ActionListener {
 
                     if (bulletRect.intersects(enemyRect)) {
                         pb.active = false;
-                        enemy.takeDamage(1); 
+                        enemy.takeDamage(1);
 
                         // Explosion + Sound
                         explosions.add(new Explosion(enemy.x, enemy.y));
                         explosionSound.play();
 
                         // Score
-                        
-                        if(enemy.getHealth() <=0) score += 100;
 
-                        
-                       
-                        int currentMilestone = score / POWER_UP_MILESTONE; 
-                        if(score > 5000 ) {
-                            if(currentMilestone ==  lastPowerUpMilestone + 3) 
-                            showPowerUpMenu();
-                        }
-                        else if (currentMilestone > lastPowerUpMilestone) {
+                        if (enemy.getHealth() <= 0)
+                            score += 100;
+
+                        int currentMilestone = score / POWER_UP_MILESTONE;
+                        if (score > 5000) {
+                            if (currentMilestone == lastPowerUpMilestone + 3)
+                                showPowerUpMenu();
+                        } else if (currentMilestone > lastPowerUpMilestone) {
                             lastPowerUpMilestone = currentMilestone;
                             showPowerUpMenu();
                         }
-                        
-                        
+
                         int currentSpawnMilestone = score / SPAWN_RATE_MILESTONE;
                         if (currentSpawnMilestone > lastSpawnRateMilestone) {
                             lastSpawnRateMilestone = currentSpawnMilestone;
@@ -240,41 +248,41 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
 
                 // PLAYER COLLIDES WITH ENEMY
-                if (player.isAlive() && playerRect.intersects(enemyRect)) {  
+                if (player.isAlive() && playerRect.intersects(enemyRect)) {
                     player.takeDamage(1);
-                    if(player.getHealth() <= 0){
+                    if (player.getHealth() <= 0) {
                         killPlayer();
                     }
-                    
+
                 }
             }
 
             // Remove dead enemies
             enemies.removeIf(en -> en.isDead());
-            
+
             // Update spawn timer
             if (enemySpawnCooldown > 0) {
                 enemySpawnCooldown--;
             }
-            
+
             // Randomly adjust target enemy count
             if (Math.random() < 0.01) { // 1% chance per frame
-                targetEnemyCount = MIN_ENEMIES + (int)(Math.random() * (MAX_ENEMIES - MIN_ENEMIES + 1));
+                targetEnemyCount = MIN_ENEMIES + (int) (Math.random() * (MAX_ENEMIES - MIN_ENEMIES + 1));
             }
-            
+
             // Spawn enemies with random timing
             if (enemies.size() < targetEnemyCount && enemySpawnCooldown <= 0) {
                 spawnRandomEnemy();
                 // Dynamic cooldown that decreases as score increases
                 int cooldownRange = Math.max(5, baseSpawnCooldownMax - baseSpawnCooldownMin); // Minimum 5 frame range
-                enemySpawnCooldown = baseSpawnCooldownMin + (int)(Math.random() * cooldownRange);
+                enemySpawnCooldown = baseSpawnCooldownMin + (int) (Math.random() * cooldownRange);
             }
 
             // ENEMY BULLETS -> PLAYER
             for (Enemy enemy : enemies) {
                 for (Bullet eb : enemy.getBullets()) {
                     Rectangle bulletRect = new Rectangle(eb.x, eb.y, 6, 12);
-                    
+
                     // Check if bullet hits shield first
                     boolean blockedByShield = false;
                     if (player.ShldLvl > 0) {
@@ -286,11 +294,11 @@ public class GamePanel extends JPanel implements ActionListener {
                             }
                         }
                     }
-                    
+
                     // Only damage player if bullet wasn't blocked by shield
                     if (!blockedByShield && player.isAlive() && bulletRect.intersects(playerRect)) {
                         eb.active = false;
-                        //decrease player health when hit with the bullets 
+                        // decrease player health when hit with the bullets
                         player.takeDamage(1);
                         if (player.getHealth() <= 0) {
                             killPlayer();
@@ -304,12 +312,12 @@ public class GamePanel extends JPanel implements ActionListener {
             for (Explosion ex : explosions) {
                 ex.update();
             }
-            
-            //new
+
+            // new
             // POWER-UPS
             for (PowerUp powerUp : powerUps) {
                 powerUp.update();
-                
+
                 // Check collision with player
                 if (player.isAlive() && powerUp.getBounds().intersects(playerRect)) {
                     powerUp.active = false;
@@ -320,28 +328,28 @@ public class GamePanel extends JPanel implements ActionListener {
 
         repaint();
     }
-    
-    private void showPowerUpMenu() {
-        // Get all power-up types 
 
-        gameStartSound.play();  
+    private void showPowerUpMenu() {
+        // Get all power-up types
+
+        choosePowerUpSound.play();
 
         PowerUpType[] allPowerUps = PowerUpType.values();
         List<PowerUpType> powerUpList = new ArrayList<>();
         for (PowerUpType type : allPowerUps) {
             powerUpList.add(type);
         }
-        
+
         // Shuffle and pick 3 random power-ups
         Collections.shuffle(powerUpList);
         for (int i = 0; i < 3 && i < powerUpList.size(); i++) {
             menuChoices[i] = powerUpList.get(i);
         }
-        
+
         // Show menu overlay
         powerUpMenuShowing = true;
     }
-    
+
     private void applyPowerUp(PowerUpType type) {
         switch (type) {
             case MULTI_SHOT:
@@ -389,7 +397,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (Explosion ex : explosions) {
             ex.draw(g);
         }
-        //new
+        // new
         // Draw power-ups
         for (PowerUp powerUp : powerUps) {
             powerUp.draw(g);
@@ -402,11 +410,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Health
         g.setColor(Color.red);
-        g.drawString("Health: " + player.getHealth(), 10, 50); 
+        g.drawString("Health: " + player.getHealth(), 10, 50);
 
-        
-        
-        //new
+        // new
         // POWER-UP STATUS
         if (player.isMultiShotActive()) {
             int bulletCount = player.multiShotLevel + 1;
@@ -414,34 +420,34 @@ public class GamePanel extends JPanel implements ActionListener {
             g.setFont(new Font("Arial", Font.BOLD, 18));
             g.drawString("MULTI-SHOT x" + bulletCount, 10, 100);
         }
-        
+
         // POWER-UP MENU OVERLAY
         if (powerUpMenuShowing) {
             // Semi-transparent dark overlay
             g.setColor(new Color(0, 0, 0, 200));
             g.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
-            
+
             // Menu box
             int menuX = 150;
             int menuY = 150;
             int menuWidth = 500;
             int menuHeight = 300;
-            
+
             g.setColor(Color.DARK_GRAY);
             g.fillRect(menuX, menuY, menuWidth, menuHeight);
             g.setColor(Color.WHITE);
             g.drawRect(menuX, menuY, menuWidth, menuHeight);
-            
+
             // Title
             g.setColor(Color.YELLOW);
             g.setFont(new Font("Arial", Font.BOLD, 32));
             g.drawString("Choose a Power-Up!", menuX + 80, menuY + 40);
-            
+
             // Options
             g.setFont(new Font("Arial", Font.BOLD, 20));
             int optionY = menuY + 90;
             int optionSpacing = 70;
-            
+
             for (int i = 0; i < 3; i++) {
                 g.setColor(Color.CYAN);
                 g.drawString((i + 1) + ". " + menuChoices[i].getName(), menuX + 50, optionY + (i * optionSpacing));
@@ -450,11 +456,12 @@ public class GamePanel extends JPanel implements ActionListener {
                 g.drawString("   " + menuChoices[i].getDescription(), menuX + 50, optionY + (i * optionSpacing) + 25);
                 g.setFont(new Font("Arial", Font.BOLD, 20));
             }
-            
+
             // Instructions
             g.setColor(Color.YELLOW);
             g.setFont(new Font("Arial", Font.PLAIN, 18));
             g.drawString("Press 1, 2, or 3 to select", menuX + 140, menuY + menuHeight + 30);
+            powerUpSound.play();
         }
 
         // GAME OVER
@@ -464,10 +471,26 @@ public class GamePanel extends JPanel implements ActionListener {
             g.drawString("GAME OVER", 250, 300);
 
             g.setFont(new Font("Arial", Font.PLAIN, 25));
-            g.drawString("Score: " + score, 350, 350); 
+            g.drawString("Score: " + score, 350, 350);
 
             g.setFont(new Font("Arial", Font.PLAIN, 25));
             g.drawString("Space to play again", 300, 450);
+
         }
     }
+
+    private void restartGame() {
+        player = new Player(400, 500);
+        player.lives = 1;
+        player.setHealth(5);
+
+        enemies.clear();
+        explosions.clear();
+        powerUps.clear();
+
+        score = 0;
+        gameOver = false;
+        gameStarted = true;
+    }
+
 }
