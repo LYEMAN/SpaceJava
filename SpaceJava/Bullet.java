@@ -1,51 +1,51 @@
 package SpaceJava;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 public class Bullet {
-
-    public int x, y;
-    public int speed;
-    public double velocityX = 0; // For angled shots
-    public double velocityY; // For angled shots
+    // Coordinates as double for smooth vector movement
+    public double x, y;
+    public double velX, velY;
     public boolean active = true;
-    public boolean fromPlayer; // true = player bullet, false = enemy bullet
+    public boolean isEnemy;
 
-    // Constructor for straight shots (backward compatible)
-    public Bullet(int x, int y, int speed, boolean fromPlayer) {
+    // Constructor for simple vertical bullets
+    public Bullet(double x, double y, double speed, boolean isEnemy) {
         this.x = x;
         this.y = y;
-        this.speed = speed;
-        this.velocityY = speed;
-        this.fromPlayer = fromPlayer;
+        this.isEnemy = isEnemy;
+        this.velX = 0;
+        // Enemy shoots down (+), Player shoots up (-)
+        this.velY = isEnemy ? speed : -Math.abs(speed);
     }
-    
-    // Constructor for angled shots
-    public Bullet(int x, int y, double velocityX, double velocityY, boolean fromPlayer) {
+
+    // Constructor for complex directional bullets (Spread shots)
+    public Bullet(double x, double y, double velX, double velY, boolean isEnemy) {
         this.x = x;
         this.y = y;
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
-        this.speed = (int)Math.abs(velocityY); // Keep for compatibility
-        this.fromPlayer = fromPlayer;
+        this.velX = velX;
+        this.velY = velY;
+        this.isEnemy = isEnemy;
     }
 
     public void update() {
-        x += velocityX;
-        y += velocityY;
+        x += velX;
+        y += velY;
 
-        if (y < 0 || y > 600 || x < 0 || x > 800) {
+        // Deactivate if off-screen
+        if (y < -50 || y > 850 || x < -50 || x > 850) {
             active = false;
         }
     }
 
-    public void draw(Graphics g) {
-        if (fromPlayer) {
-            g.setColor(Color.yellow);
-        } else {
-            g.setColor(Color.orange);
-        }
-        g.fillRect(x, y, 6, 12);
+    public void draw(Graphics2D g) {
+        g.setColor(isEnemy ? new Color(255, 50, 50) : new Color(255, 255, 0));
+        // Draw slightly larger bullets
+        g.fillOval((int)x, (int)y, 6, 12);
+        
+        // Add a glow effect
+        g.setColor(isEnemy ? new Color(255, 0, 0, 100) : new Color(255, 200, 0, 100));
+        g.fillOval((int)x - 2, (int)y - 2, 10, 16);
     }
 }
-
