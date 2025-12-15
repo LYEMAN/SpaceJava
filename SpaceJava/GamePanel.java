@@ -161,7 +161,8 @@ public class GamePanel extends JPanel implements ActionListener {
         int randomX = 40 + (int) (Math.random() * (PANEL_WIDTH - 120));
         int randomY = -40 - (int) (Math.random() * 100);
         Enemy enemy = new Enemy(randomX, randomY);
-        
+        enemy.increaseHealth(score / 2000);
+
         enemies.add(enemy);
     }
 
@@ -299,8 +300,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         if (enemies.size() < targetEnemyCount && enemySpawnCooldown <= 0) {
             spawnRandomEnemy();
-            int cooldownRange = Math.max(5, baseSpawnCooldownMax - baseSpawnCooldownMin);
-            enemySpawnCooldown = baseSpawnCooldownMin + (int) (Math.random() * cooldownRange);
+            int cooldownRange = Math.max(5, baseSpawnCooldownMax - baseSpawnCooldownMin); 
+            enemySpawnCooldown = baseSpawnCooldownMin + (int) (Math.random() * cooldownRange); 
+
         }
     }
 
