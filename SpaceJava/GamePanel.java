@@ -13,7 +13,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private static final int PANEL_HEIGHT = 600;
 
     // Game Constants
-    private static final int POWER_UP_MILESTONE = 5000;
+    private static final int POWER_UP_MILESTONE = 1000;
     private static final int SPAWN_RATE_MILESTONE = 300;
     private static final int MIN_ENEMIES = 3;
     private static final int MAX_ENEMIES = 50;
@@ -427,14 +427,14 @@ public class GamePanel extends JPanel implements ActionListener {
         g2.setColor(Color.WHITE);
         g2.drawString(scoreVal, 20, 55);
 
-        // 2. HULL / HEALTH DISPLAY (Top Right, Segmented Bars)
+        // 2.HEALTH DISPLAY (Top Right, Segmented Bars)
         if (player != null) {
             int maxHp = Math.max(1, player.getMaxHealth());
             int hp = Math.max(0, player.getHealth());
             
             // Text Label
             g2.setFont(new Font("Monospaced", Font.BOLD, 18));
-            String hullLabel = "HULL STATUS";
+            String hullLabel = "HEALTH STATUS";
             int labelWidth = g2.getFontMetrics().stringWidth(hullLabel);
             int rightEdge = PANEL_WIDTH - 20;
             
