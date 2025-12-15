@@ -1,11 +1,11 @@
 package SpaceJava;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 public class Explosion {
-
-    public int x, y;
-    private int timer = 20;     // lasts 20 frames
+    private int x, y;
+    private int life = 20;
     public boolean active = true;
 
     public Explosion(int x, int y) {
@@ -14,18 +14,13 @@ public class Explosion {
     }
 
     public void update() {
-        timer--;
-        if (timer <= 0) {
-            active = false;
-        }
+        life--;
+        if (life <= 0) active = false;
     }
 
-    public void draw(Graphics g) {
-        g.setColor(Color.orange);
-        g.fillOval(x - 20, y - 20, 60, 60);
-
-        g.setColor(Color.red);
-        g.fillOval(x - 10, y - 10, 40, 40);
+    public void draw(Graphics2D g) {
+        g.setColor(new Color(255, 100, 0, Math.min(255, life * 12)));
+        int size = 40 - life;
+        g.fillOval(x - size/2, y - size/2, size*2, size*2);
     }
 }
-
