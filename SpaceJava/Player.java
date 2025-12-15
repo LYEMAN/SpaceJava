@@ -2,8 +2,8 @@ package SpaceJava;
 
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Player extends Entity {
 
@@ -99,7 +99,9 @@ public class Player extends Entity {
         
         // Check enemy bullets against player
         for (Bullet b : enemy.getBullets()) {
+
             Rectangle bulletRect = new Rectangle((int)b.x, (int)b.y, 6, 12);
+
             if (playerRect.intersects(bulletRect)) return true;
         }
         return false;
